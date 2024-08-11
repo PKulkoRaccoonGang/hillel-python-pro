@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environment
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+
+# Compiled files
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
