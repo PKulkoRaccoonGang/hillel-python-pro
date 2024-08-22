@@ -1,11 +1,18 @@
+from http import HTTPStatus
+from pprint import pprint
+import random
 import secrets
 import string
 
+import httpx
 import pandas as pd
-from flask import Flask, abort
+from flask import Flask, Response, abort
+from webargs.flaskparser import use_kwargs
 
 from config import MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH, AVAILABLE_CHARACTERS, columns_to_average
 from utils import clean_column_names
+
+from validators import password_length_config
 
 
 app = Flask(__name__)
@@ -37,6 +44,49 @@ def generate_password() -> str:
     password += [secrets.choice(AVAILABLE_CHARACTERS) for _ in range(password_length - 4)]
     secrets.SystemRandom().shuffle(password)
     return ''.join(password)
+
+
+@app.route('/generate_password2')
+@use_kwargs(
+    password_length_config,
+    location='query'
+)
+def generate_password2(length) -> str:
+    # password_length = request.args.get('length', '99')
+    # max_limit = request.args.get('limit', '100')
+
+    # print('password_length ====>', password_length)
+    
+    # if not password_length.isdigit():
+    #     return 'ERROR: Password length should be a number.'
+    
+    # password_length = int(password_length)
+    
+    # if not 8 <= password_length <= 100:
+    #     return 'ERROR: Password length should be between 8 and 100.'
+    
+    return ''.join(
+        random.choices(
+            string.digits + string.ascii_letters + string.punctuation, k=length
+        )
+    )
+
+
+@app.route('/get-astronauts')
+def get_astronauts():
+    url = 'http://api.open-notify.org/astros.json'
+    result = httpx.get(url=url, params={})
+    
+    if result.status_code not in (HTTPStatus.OK,):
+        return Response('ERROR: Failed to fetch data from the API.')
+    
+    result = result.json()
+    statistics = {}
+    for entry in result.get('people', {}):
+        statistics[entry['craft']] = statistics.get(entry['craft'], 0) + 1
+        
+    pprint(result)
+    return result
 
 
 @app.route('/avarage_statistics')
